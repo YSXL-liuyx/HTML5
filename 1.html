@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>情绪陪伴 App - 移动端模拟</title>
+    <!-- 引入 Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --color-primary: #8B5CF6; /* 紫色 */
+            --color-secondary: #ECFDF5; /* 浅绿色背景 */
+            --color-happy: #FBBF24; /* 开心 黄色 */
+            --color-tired: #9CA3AF; /* 疲惫 灰色 */
+            --color-calm: #34D399; /* 平静 绿色 */
+            --color-anxious: #F87171; /* 焦虑 红色 */
+            --color-excited: #E879F9; /* 兴奋 粉色 */
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8; /* 轻柔背景 */
+        }
+        .mood-selector button {
+            transition: all 0.2s ease-in-out;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        .mood-selector button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .animal-container {
+            transition: transform 0.1s ease-out;
+        }
+        .animal-interact {
+            animation: bounce-heart 0.8s ease-out;
+        }
+        @keyframes bounce-heart {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        /* 自定义滚动条样式 */
+        .log-container::-webkit-scrollbar {
+            width: 4px;
+        }
+        .log-container::-webkit-scrollbar-thumb {
+            background: rgba(139, 92, 246, 0.5);
+            border-radius: 2px;
+        }
+        /* 确保饰品图标的过渡平滑 */
+        #accessory-icon {
+            transition: all 0.3s ease-in-out;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center p-4">
+
+    <!-- 主应用容器 -->
+    <div id="app" class="w-full max-w-md bg-white rounded-xl shadow-2xl overflow-hidden min-h-[80vh] flex flex-col">
+
+        <!-- 顶部状态栏 / 小动物陪伴界面 -->
+        <div class="p-6 bg-gradient-to-br from-purple-400 to-indigo-500 text-white shadow-lg">
+            <div class="flex justify-between items-center mb-4">
+                <h1 class="text-2xl font-extrabold" id="current-animal-name">小兔子陪伴</h1>
+                <span id="today-mood-display" class="px-3 py-1 bg-white bg-opacity-30 rounded-full text-sm font-semibold shadow-inner">
+                    未记录心情
+                </span>
+            </div>
+            
+            <!-- 连续记录天数 -->
+            <div class="text-sm font-medium opacity-80 mb-2">
+                连续记录: <span id="continuous-days" class="text-lg font-bold">0</span> 天
+            </div>
+        </div>
+
+        <!-- 小动物/互动区 -->
+        <!-- 移除了 animal-bg-container 类和 ID -->
+        <div id="animal-area" class="flex-grow flex flex-col items-center justify-center p-4 relative overflow-hidden bg-gray-100">
+            <!-- 饰品佩戴位置 -->
+            <div id="accessory-icon" class="absolute top-1/4 transform -translate-y-full text-6xl z-20"></div>
+            
+            <!-- 小动物主体 - 可点击区域 -->
+            <div id="animal-display" class="text-[120px] cursor-pointer active:scale-95 transform transition-transform animal-container">
+                🐰
+            </div>
+            
+            <!-- 互动反馈消息 -->
+            <div id="feedback-message" class="mt-4 p-2 text-sm text-gray-600 bg-white rounded-lg opacity-0 transition-opacity duration-300 shadow">
+                点击小动物互动哦！
+            </div>
+            
+            <div id="reward-message" class="absolute bottom-20 bg-yellow-100 text-yellow-800 p-3 rounded-xl shadow-lg font-bold scale-0 transition-transform duration-500">
+                🎉 解锁新饰品！
+            </div>
+        </div>
+
+        <!-- 底部导航 (模拟Vant Tabbar) -->
+        <div class="bg-gray-50 border-t border-gray-200 flex justify-around p-3 shadow-inner text-gray-500">
+            <button onclick="changeView('home')" class="flex flex-col items-center text-purple-600 font-bold">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-10v10a1 1 0 001 1h3m-6 0a1 1 0 001-1v-4a1 1 0 00-1-1h-2a1 1 0 00-1 1v4a1 1 0 001 1zm-6 0h.01" /></svg>
+                <span class="text-xs">首页</span>
+            </button>
+            <button onclick="changeView('log')" class="flex flex-col items-center hover:text-purple-600">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h.01M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                <span class="text-xs">日志</span>
+            </button>
+            <button onclick="changeView('inventory')" class="flex flex-col items-center hover:text-purple-600">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13v4m0-4V3m-4 5h8m-8 4h8m-8 4h8" /></svg>
+                <span class="text-xs">饰品</span>
+            </button>
+        </div>
+
+        <!-- 浮动的心情选择器 (只在首页显示) -->
+        <div id="mood-panel" class="p-4 bg-white border-t border-gray-200 mood-selector">
+            <h3 class="text-lg font-semibold mb-3 text-gray-700">记录今日心情</h3>
+            <div class="grid grid-cols-5 gap-3">
+                <button data-mood="HAPPY" class="flex flex-col items-center p-2 rounded-xl bg-yellow-100 text-yellow-800" onclick="recordMood('HAPPY')">
+                    <span class="text-2xl">😊</span>
+                    <span class="text-xs mt-1">开心</span>
+                </button>
+                <button data-mood="CALM" class="flex flex-col items-center p-2 rounded-xl bg-green-100 text-green-800" onclick="recordMood('CALM')">
+                    <span class="text-2xl">😌</span>
+                    <span class="text-xs mt-1">平静</span>
+                </button>
+                <button data-mood="TIRED" class="flex flex-col items-center p-2 rounded-xl bg-gray-200 text-gray-800" onclick="recordMood('TIRED')">
+                    <span class="text-2xl">😴</span>
+                    <span class="text-xs mt-1">疲惫</span>
+                </button>
+                <button data-mood="ANXIOUS" class="flex flex-col items-center p-2 rounded-xl bg-red-100 text-red-800" onclick="recordMood('ANXIOUS')">
+                    <span class="text-2xl">😟</span>
+                    <span class="text-xs mt-1">焦虑</span>
+                </button>
+                <button data-mood="EXCITED" class="flex flex-col items-center p-2 rounded-xl bg-pink-100 text-pink-800" onclick="recordMood('EXCITED')">
+                    <span class="text-2xl">🥳</span>
+                    <span class="text-xs mt-1">兴奋</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- 日志页面 (隐藏) -->
+        <div id="log-view" class="p-6 hidden flex-col flex-grow bg-gray-50">
+            <h2 class="text-xl font-bold mb-4 text-purple-700">心情记录日志</h2>
+            <div id="history-list" class="space-y-3 overflow-y-auto log-container flex-grow max-h-full">
+                <!-- 日志项将在这里插入 -->
+            </div>
+        </div>
+
+        <!-- 饰品和动物选择页面 (隐藏) -->
+        <div id="inventory-view" class="p-6 hidden flex-col flex-grow bg-gray-50 overflow-y-auto">
+            <div id="inventory-list" class="space-y-8 pb-4">
+                <!-- 动物选择和饰品列表将在这里插入 -->
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // --- 1. 数据模型与状态 (State & Data Model) ---
+        const MOODS = {
+            HAPPY: { cn: '开心', emoji: '😊', color: 'bg-yellow-100 text-yellow-800' },
+            CALM: { cn: '平静', emoji: '😌', color: 'bg-green-100 text-green-800' },
+            TIRED: { cn: '疲惫', emoji: '😴', color: 'bg-gray-200 text-gray-800' },
+            ANXIOUS: { cn: '焦虑', emoji: '😟', color: 'bg-red-100 text-red-800' },
+            EXCITED: { cn: '兴奋', emoji: '🥳', color: 'bg-pink-100 text-pink-800' },
+            UNKNOWN: { cn: '未记录', emoji: '❓', color: 'bg-white text-gray-500' }
+        };
+
+        // 🐾 小动物定义 - 只有基础表情
+        const ANIMALS = {
+            RABBIT: { id: 'RABBIT', name: '小兔子', emoji: '🐰' },
+            CAT: { id: 'CAT', name: '黑猫', emoji: '🐈‍⬛' },
+            PANDA: { id: 'PANDA', name: '小熊猫', emoji: '🐼' },
+            DOG: { id: 'DOG', name: '萨摩耶', emoji: '🐕' },
+            FOX: { id: 'FOX', name: '小狐狸', emoji: '🦊' },
+            HEDGEHOG: { id: 'HEDGEHOG', name: '小刺猬', emoji: '🦔' },
+        };
+        
+        // 💬 小动物对话定义 (保持不变)
+        const ANIMAL_DIALOGUES = {
+            RABBIT: {
+                HAPPY: "太棒了！你的快乐感染了我，我们一起去奔跑吧！",
+                EXCITED: "哇！感觉到了你的能量，让我们一起跳个舞吧！",
+                CALM: "感受到你内心的平静，深呼吸，享受这一刻的宁静吧。",
+                TIRED: "摸摸头，辛苦了。现在放松下来，我会在旁边守护你入睡的。",
+                ANXIOUS: "没事的，我在你身边！我们数三下，把那些不安都吹走，好吗？",
+                UNKNOWN: "你想和我说说今天发生了什么吗？我在听哦。",
+            },
+            CAT: {
+                HAPPY: "喵~ 看到你开心，我也觉得今天的阳光格外好。",
+                EXCITED: "兴奋？别忘了也要保持优雅。让我帮你梳梳毛~",
+                CALM: "呼噜噜... 靠近我，一起享受这份午后的安宁。",
+                TIRED: "不要担心，休息是最好的治愈。让我靠着你，给你温暖。",
+                ANXIOUS: "虽然我不太懂，但我会一直听着，你不是一个人在面对。",
+                UNKNOWN: "今天的你看起来有点神秘，要不要来点小鱼干？",
+            },
+            PANDA: {
+                HAPPY: "嗝~ 快乐的时候要多吃竹子！给你一个竹叶抱抱！",
+                EXCITED: "哇，这比吃笋还让人兴奋！慢点，慢点，注意安全！",
+                CALM: "慢慢来，不着急。我在这里，一切都好。",
+                TIRED: "累了就趴着吧，把烦恼都忘了。今天不做任何事也没关系。",
+                ANXIOUS: "别怕，我会保护你的。那些不好的情绪，让我帮你吃掉！",
+                UNKNOWN: "今天还没记录心情呢。快告诉我，你是开心还是想睡觉？",
+            },
+            DOG: {
+                HAPPY: "汪！太开心啦！我们一起玩抛球游戏吧！",
+                EXCITED: "狂奔吧！我的主人！我已经准备好一起冲向快乐了！",
+                CALM: "呼... 闻到了平静的味道。来，把手给我，我们静静地待会儿。",
+                TIRED: "休息是为了跑得更远！别担心，我会帮你暖脚脚的。",
+                ANXIOUS: "别怕！我会大声吠叫，把那些坏情绪都吓跑！汪！",
+                UNKNOWN: "快告诉我你的心情，我才能知道该怎么让你更开心呀！",
+            },
+            FOX: {
+                HAPPY: "你的好心情是我的能量来源，继续保持这份活力！",
+                EXCITED: "哈哈，我也跟着你变得狡猾又兴奋了！今天要做点什么有趣的事呢？",
+                CALM: "世界很安静，你也很放松。真是一个适合思考的好日子。",
+                TIRED: "充电时间到！我知道你很累，但别忘了给自己一个拥抱。",
+                ANXIOUS: "焦虑就像一团迷雾，但我们能一起找到出口。相信自己。",
+                UNKNOWN: "无论你选择了什么，我都支持你。记录一下心情会更好哦。",
+            },
+            HEDGEHOG: {
+                HAPPY: "太好了！我的刺都软了一点点呢。继续保持哦！",
+                EXCITED: "呼呼！我感觉要飞起来了！不过别太激动，刺扎到你就不好了！",
+                CALM: "别动，别动。安静地听一听周围的声音，是不是很治愈？",
+                TIRED: "我现在不想卷起来，因为我想让你知道我在你身边。辛苦啦。",
+                ANXIOUS: "你的紧张我感受到了，深呼吸。我的小刺不会扎到你的，靠近点。",
+                UNKNOWN: "嗯？你今天有点安静。也许记录下来，就能找到答案。",
+            },
+        };
+
+        const INITIAL_INVENTORY = {
+            flower: { id: 'flower', name: '小花', emoji: '🌸', requiredDays: 0, unlocked: true, equipped: false },
+            hat: { id: 'hat', name: '小帽子', emoji: '🎩', requiredDays: 3, unlocked: false, equipped: false },
+            scarf: { id: 'scarf', name: '小围巾', emoji: '🧣', requiredDays: 5, unlocked: false, equipped: false },
+            bowtie: { id: 'bowtie', name: '小领结', emoji: '🎀', requiredDays: 7, unlocked: false, equipped: false },
+            glasses: { id: 'glasses', name: '小眼镜', emoji: '👓', requiredDays: 10, unlocked: false, equipped: false },
+            crown: { id: 'crown', name: '小皇冠', emoji: '👑', requiredDays: 14, unlocked: false, equipped: false },
+        };
+
+        let state = {
+            currentAnimalId: 'RABBIT', // 默认小动物
+            todayMood: 'UNKNOWN', // 当前记录的心情
+            historyRecords: [], // [{ date: '2023-01-01', mood: 'HAPPY' }, ...]
+            accessoryInventory: JSON.parse(JSON.stringify(INITIAL_INVENTORY)),
+            continuousDays: 0,
+            currentView: 'home'
+        };
+
+        // --- 2. 工具函数 (Utility Functions) ---
+
+        /** 获取当前日期 YYYY-MM-DD */
+        function getCurrentDate() {
+            const date = new Date();
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        // --- 3. 数据持久化 (Storage) ---
+
+        /** 从 localStorage 加载数据 */
+        function loadData() {
+            const storedState = localStorage.getItem('companionApp_state');
+            if (storedState) {
+                try {
+                    const loadedState = JSON.parse(storedState);
+                    // 覆盖状态，但保留默认值以防新字段丢失
+                    state = { ...state, ...loadedState };
+
+                    // 确保 currentAnimalId 是有效的，如果无效则使用默认值
+                    if (!ANIMALS[state.currentAnimalId]) {
+                        state.currentAnimalId = 'RABBIT';
+                    }
+                    
+                    // 确保饰品库存包含所有初始饰品，并从加载的数据中更新状态
+                    for (const id in INITIAL_INVENTORY) {
+                        if (loadedState.accessoryInventory && loadedState.accessoryInventory[id]) {
+                            state.accessoryInventory[id] = loadedState.accessoryInventory[id];
+                        } else if (!state.accessoryInventory[id]) {
+                            // 如果加载的数据没有，使用初始值
+                            state.accessoryInventory[id] = INITIAL_INVENTORY[id];
+                        }
+                    }
+                    console.log('数据加载成功。');
+                } catch (e) {
+                    console.error('加载数据失败:', e);
+                }
+            }
+            updateContinuousDays(); // 每次加载后重新计算连续天数
+        }
+
+        /** 保存数据到 localStorage */
+        function saveData() {
+            localStorage.setItem('companionApp_state', JSON.stringify(state));
+        }
+
+        // --- 4. 核心逻辑 (Core Logic) ---
+
+        /** 计算连续记录天数 */
+        function updateContinuousDays() {
+            // 简化：这里仅依赖记录数作为激励
+            state.continuousDays = state.historyRecords.length; 
+        }
+
+        /** 检查并奖励饰品 */
+        function checkReward() {
+            const currentDays = state.continuousDays;
+            let unlockedSomething = false;
+
+            for (const id in state.accessoryInventory) {
+                const acc = state.accessoryInventory[id];
+                if (!acc.unlocked && acc.requiredDays <= currentDays) {
+                    acc.unlocked = true;
+                    unlockedSomething = true;
+                    console.log(`🎉 解锁了 ${acc.name}！`);
+                }
+            }
+
+            if (unlockedSomething) {
+                showRewardMessage();
+                saveData();
+            }
+        }
+        
+        /** 显示奖励信息 */
+        function showRewardMessage() {
+            const msgEl = document.getElementById('reward-message');
+            msgEl.classList.remove('scale-0', 'opacity-0');
+            msgEl.classList.add('scale-100', 'opacity-100');
+            setTimeout(() => {
+                msgEl.classList.remove('scale-100', 'opacity-100');
+                msgEl.classList.add('scale-0', 'opacity-0');
+            }, 3000);
+        }
+
+        /** 记录心情 */
+        function recordMood(mood) {
+            const today = getCurrentDate();
+            const lastIndex = state.historyRecords.length - 1;
+
+            if (lastIndex >= 0 && state.historyRecords[lastIndex].date === today) {
+                // 更新今日记录
+                state.historyRecords[lastIndex].mood = mood;
+            } else {
+                // 新增记录
+                state.historyRecords.push({ date: today, mood: mood });
+                state.continuousDays++; // 简化：每记录一次就+1天 (除非是更新)
+                checkReward();
+            }
+
+            state.todayMood = mood;
+            saveData();
+            updateUI();
+
+            // 提示用户记录成功
+            const msg = `心情记录成功: ${MOODS[mood].cn}!`;
+            showFeedback(msg);
+        }
+
+        /** 佩戴饰品 */
+        function equipAccessory(id) {
+            const acc = state.accessoryInventory[id];
+            if (!acc || !acc.unlocked) {
+                showFeedback(`饰品 [${acc ? acc.name : id}] 尚未解锁!`);
+                return;
+            }
+
+            // 卸下所有
+            for (const key in state.accessoryInventory) {
+                state.accessoryInventory[key].equipped = false;
+            }
+            
+            // 佩戴新的
+            acc.equipped = true;
+            showFeedback(`已为 ${ANIMALS[state.currentAnimalId].name} 佩戴 ${acc.name}！`);
+            saveData();
+            updateUI();
+        }
+        
+        /** 切换小动物 */
+        function selectAnimal(animalId) {
+            const animal = ANIMALS[animalId];
+            if (!animal) {
+                showFeedback(`找不到动物ID: ${animalId}`);
+                return;
+            }
+            if (state.currentAnimalId === animalId) {
+                showFeedback(`你的朋友已经是 ${animal.name} 啦！`);
+                return;
+            }
+
+            state.currentAnimalId = animalId;
+            // 切换动物后默认卸下所有饰品，因为饰品可能不兼容
+            for (const key in state.accessoryInventory) {
+                state.accessoryInventory[key].equipped = false;
+            }
+            
+            showFeedback(`已切换伴侣：${animal.name}！请重新选择饰品。`);
+            saveData();
+            updateUI();
+        }
+
+        /** 小动物点击互动 (根据心情和动物提供定制对话) */
+        function animateAnimal() {
+            const animalEl = document.getElementById('animal-display');
+            const currentAnimalId = state.currentAnimalId;
+            const mood = state.todayMood in MOODS ? state.todayMood : 'UNKNOWN'; // 确保 mood 存在于 MOODS 中
+            
+            // 1. 获取定制对话
+            let dialogue = ANIMAL_DIALOGUES[currentAnimalId] ? 
+                           (ANIMAL_DIALOGUES[currentAnimalId][mood] || ANIMAL_DIALOGUES[currentAnimalId]['UNKNOWN']) : 
+                           "点击小动物互动哦！"; // 默认/安全对话
+            
+            // 2. 播放动画
+            let animationClass = '';
+            
+            if (mood === 'HAPPY' || mood === 'EXCITED') {
+                // 积极情绪：弹跳动画
+                animationClass = 'animal-interact';
+            } else if (mood === 'TIRED' || mood === 'ANXIOUS') {
+                // 消极/低能量情绪：轻微下沉或移动
+                animalEl.style.transform = 'translateY(5px) scale(0.98)';
+            } else {
+                // 平静/未记录情绪：放大
+                animalEl.style.transform = 'scale(1.05)';
+            }
+
+            if (animationClass) {
+                animalEl.classList.add(animationClass);
+            }
+            
+            // 3. 显示反馈对话
+            showFeedback(dialogue);
+
+            // 4. 清除动画/状态
+            setTimeout(() => {
+                if (animationClass) {
+                    animalEl.classList.remove(animationClass);
+                }
+                animalEl.style.transform = '';
+            }, 800);
+        }
+
+        /** 显示简短的反馈信息 */
+        function showFeedback(message) {
+            const feedbackEl = document.getElementById('feedback-message');
+            feedbackEl.textContent = message;
+            feedbackEl.classList.remove('opacity-0');
+            feedbackEl.classList.add('opacity-100');
+            setTimeout(() => {
+                feedbackEl.classList.remove('opacity-100');
+                feedbackEl.classList.add('opacity-0');
+            }, 2500);
+        }
+
+        // --- 5. 界面渲染 (UI Rendering) ---
+
+        /** 渲染主界面和状态 */
+        function updateUI() {
+            const moodData = MOODS[state.todayMood] || MOODS.UNKNOWN;
+            const currentAnimalData = ANIMALS[state.currentAnimalId] || ANIMALS.RABBIT;
+            
+            // 1. 顶部状态栏
+            document.getElementById('current-animal-name').textContent = `${currentAnimalData.name}陪伴`;
+            document.getElementById('today-mood-display').textContent = moodData.cn;
+            document.getElementById('continuous-days').textContent = state.continuousDays;
+
+            // 2. 小动物外观 - 始终显示默认 emoji
+            const animalEmoji = currentAnimalData.emoji;
+            document.getElementById('animal-display').textContent = animalEmoji;
+
+            // 3. 饰品逻辑
+            let accessoryEmoji = '';
+            const accessoryIconEl = document.getElementById('accessory-icon');
+
+            // 检查是否佩戴了饰品
+            let equippedPermanentAccessory = null;
+            for (const id in state.accessoryInventory) {
+                if (state.accessoryInventory[id].equipped) {
+                    equippedPermanentAccessory = state.accessoryInventory[id].emoji;
+                    break;
+                }
+            }
+            
+            if (equippedPermanentAccessory) {
+                // 如果有佩戴的饰品，显示饰品
+                accessoryEmoji = equippedPermanentAccessory;
+                // 设置饰品默认位置
+                accessoryIconEl.classList.add('top-1/4', '-translate-y-full', 'text-6xl');
+                accessoryIconEl.classList.remove('top-1/2', 'translate-y-0', 'text-4xl', 'opacity-80');
+            } else {
+                // 没有任何饰品
+                accessoryIconEl.classList.add('top-1/4', '-translate-y-full', 'text-6xl');
+                accessoryIconEl.classList.remove('top-1/2', 'translate-y-0', 'text-4xl', 'opacity-80');
+                accessoryEmoji = '';
+            }
+
+            document.getElementById('accessory-icon').textContent = accessoryEmoji;
+
+            // 4. 切换视图
+            changeView(state.currentView, false); // 确保当前视图的内容被更新
+        }
+
+        /** 渲染日志视图 */
+        function renderLogView() {
+            const listEl = document.getElementById('history-list');
+            listEl.innerHTML = '';
+            
+            if (state.historyRecords.length === 0) {
+                listEl.innerHTML = '<p class="text-center text-gray-500 mt-8">还没有记录呢，快去记录第一条心情吧！</p>';
+                return;
+            }
+
+            // 反向迭代显示最近的记录
+            for (let i = state.historyRecords.length - 1; i >= 0; i--) {
+                const record = state.historyRecords[i];
+                const moodData = MOODS[record.mood] || MOODS.UNKNOWN;
+                const item = document.createElement('div');
+                item.className = `p-3 rounded-xl flex items-center shadow-md ${moodData.color}`;
+                item.innerHTML = `
+                    <span class="text-3xl mr-4">${moodData.emoji}</span>
+                    <div>
+                        <p class="font-bold text-lg">${moodData.cn}</p>
+                        <p class="text-sm opacity-80">${record.date}</p>
+                    </div>
+                `;
+                listEl.appendChild(item);
+            }
+        }
+
+        /** 渲染饰品仓库和动物选择视图 */
+        function renderInventoryView() {
+            const listEl = document.getElementById('inventory-list');
+            listEl.innerHTML = '';
+
+            // --- 1. 小动物选择区域 ---
+            const animalSection = document.createElement('div');
+            animalSection.className = 'mb-8 p-4 bg-white rounded-xl shadow-lg';
+            animalSection.innerHTML = `
+                <h3 class="text-xl font-extrabold mb-4 text-purple-700 border-b pb-2">更换你的小伴侣</h3>
+                <div class="grid grid-cols-3 gap-4">
+                    ${Object.values(ANIMALS).map(animal => {
+                        const isCurrent = animal.id === state.currentAnimalId;
+                        // 始终显示动物的默认表情
+                        const displayEmoji = animal.emoji; 
+                        return `
+                            <button onclick="selectAnimal('${animal.id}')"
+                                    class="p-4 rounded-xl shadow-inner flex flex-col items-center justify-center transition-all duration-200
+                                            ${isCurrent ? 'bg-purple-100 ring-2 ring-purple-500' : 'bg-gray-50 hover:bg-gray-100'}">
+                                <span class="text-4xl sm:text-5xl">${displayEmoji}</span>
+                                <span class="text-xs font-semibold mt-2 ${isCurrent ? 'text-purple-700' : 'text-gray-700'}">${animal.name}</span>
+                                ${isCurrent ? '<span class="text-[10px] text-purple-600 font-bold mt-1">当前</span>' : ''}
+                            </button>
+                        `;
+                    }).join('')}
+                </div>
+            `;
+            listEl.appendChild(animalSection);
+
+            // --- 2. 饰品仓库区域 ---
+            const accessorySection = document.createElement('div');
+            accessorySection.className = 'p-4 bg-white rounded-xl shadow-lg';
+            accessorySection.innerHTML = `
+                <h3 class="text-xl font-extrabold mb-4 text-purple-700 border-b pb-2">饰品仓库</h3>
+                <p class="text-sm text-gray-500 mb-4">连续记录心情可解锁更多饰品哦！</p>
+                <div id="accessory-list-container" class="space-y-4">
+                    <!-- 饰品列表 -->
+                </div>
+            `;
+            listEl.appendChild(accessorySection);
+            
+            const accessoryListContainer = accessorySection.querySelector('#accessory-list-container');
+
+            for (const id in state.accessoryInventory) {
+                const acc = state.accessoryInventory[id];
+                let buttonText, buttonClass, buttonAction;
+
+                if (acc.equipped) {
+                    buttonText = '已佩戴';
+                    buttonClass = 'bg-purple-600 text-white cursor-default';
+                    buttonAction = '';
+                } else if (acc.unlocked) {
+                    buttonText = '佩戴';
+                    buttonClass = 'bg-green-500 text-white hover:bg-green-600';
+                    buttonAction = `equipAccessory('${acc.id}')`;
+                } else {
+                    buttonText = `未解锁 (${acc.requiredDays} 天)`;
+                    buttonClass = 'bg-gray-300 text-gray-600 cursor-not-allowed';
+                    buttonAction = '';
+                }
+
+                const item = document.createElement('div');
+                item.className = 'flex justify-between items-center p-3 bg-gray-50 rounded-xl shadow-md';
+                item.innerHTML = `
+                    <div class="flex items-center">
+                        <span class="text-3xl mr-4">${acc.emoji}</span>
+                        <div>
+                            <p class="font-bold text-gray-800">${acc.name}</p>
+                            <p class="text-xs text-gray-500">用于 ${ANIMALS[state.currentAnimalId].name}</p>
+                        </div>
+                    </div>
+                    <button class="px-4 py-2 text-sm font-semibold rounded-full transition-colors ${buttonClass}"
+                            ${buttonAction ? `onclick="${buttonAction}"` : 'disabled'}>
+                        ${buttonText}
+                    </button>
+                `;
+                accessoryListContainer.appendChild(item);
+            }
+        }
+
+        /** 视图切换 */
+        function changeView(view, updateNav = true) {
+            state.currentView = view;
+            
+            // 隐藏所有特定视图元素
+            document.getElementById('log-view').classList.add('hidden');
+            document.getElementById('inventory-view').classList.add('hidden', 'flex-col');
+            document.getElementById('mood-panel').classList.add('hidden');
+            // 获取主互动区域的父容器
+            const mainContentAreaParent = document.querySelector('#animal-area').parentElement;
+            document.getElementById('animal-area').style.display = 'none';
+
+            if (view === 'home') {
+                document.getElementById('animal-area').style.display = 'flex';
+                document.getElementById('mood-panel').classList.remove('hidden');
+            } else if (view === 'log') {
+                document.getElementById('log-view').classList.remove('hidden');
+                document.getElementById('log-view').classList.add('flex-col');
+                renderLogView();
+            } else if (view === 'inventory') {
+                document.getElementById('inventory-view').classList.remove('hidden');
+                document.getElementById('inventory-view').classList.add('flex-col');
+                renderInventoryView();
+            }
+
+            if (updateNav) {
+                // 更新底部导航高亮状态 (简单实现)
+                const navButtons = document.querySelectorAll('.bg-gray-50 button');
+                navButtons.forEach(btn => {
+                    const btnView = btn.getAttribute('onclick').match(/'(.*?)'/)[1];
+                    if (btnView === view) {
+                        btn.classList.add('text-purple-600', 'font-bold');
+                        btn.classList.remove('hover:text-purple-600');
+                    } else {
+                        btn.classList.remove('text-purple-600', 'font-bold');
+                        btn.classList.add('hover:text-purple-600');
+                    }
+                });
+            }
+        }
+
+        // --- 6. 初始化 (Initialization) ---
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            loadData();
+            updateUI();
+            
+            // 绑定小动物点击事件
+            document.getElementById('animal-display').addEventListener('click', animateAnimal);
+            
+            // 默认显示首页
+            changeView('home');
+        });
+
+        // 将核心函数暴露给全局作用域，以便 HTML 能够调用
+        window.recordMood = recordMood;
+        window.changeView = changeView;
+        window.equipAccessory = equipAccessory;
+        window.selectAnimal = selectAnimal;
+
+    </script>
+</body>
+</html>
