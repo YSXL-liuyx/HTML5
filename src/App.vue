@@ -50,45 +50,45 @@ const navItems = [
 // ----------------------------------------
 // LeanCloud 用户配置同步
 // ----------------------------------------
-const syncUserProfile = async () => {
-  const user = AV.User.current();
-  if (!user) return;
+// const syncUserProfile = async () => {
+//   const user = AV.User.current();
+//   if (!user) return;
 
-  const query = new AV.Query('UserProfile');
-  query.equalTo('userId', user.id);
-  let profile = await query.first();
+//   const query = new AV.Query('UserProfile');
+//   query.equalTo('userId', user.id);
+//   let profile = await query.first();
 
-  if (!profile) {
-    // 新用户创建 profile
-    const UserProfile = AV.Object.extend('UserProfile');
-    profile = new UserProfile();
-    profile.set('userId', user.id);
-    profile.set('currentAnimalId', store.state.currentAnimalId);
-    profile.set('accessoryInventory', store.state.accessoryInventory);
-    await profile.save();
-  } else {
-    // 老用户读取云端小动物和饰品状态
-    store.state.currentAnimalId = profile.get('currentAnimalId');
-    store.state.accessoryInventory = profile.get('accessoryInventory');
-    store.saveData();
-  }
-  return profile;
-};
+//   if (!profile) {
+//     // 新用户创建 profile
+//     const UserProfile = AV.Object.extend('UserProfile');
+//     profile = new UserProfile();
+//     profile.set('userId', user.id);
+//     profile.set('currentAnimalId', store.state.currentAnimalId);
+//     profile.set('accessoryInventory', store.state.accessoryInventory);
+//     await profile.save();
+//   } else {
+//     // 老用户读取云端小动物和饰品状态
+//     store.state.currentAnimalId = profile.get('currentAnimalId');
+//     store.state.accessoryInventory = profile.get('accessoryInventory');
+//     store.saveData();
+//   }
+//   return profile;
+// };
 
-// 更新云端用户状态
-const updateUserProfile = async () => {
-  const user = AV.User.current();
-  if (!user) return;
+// // 更新云端用户状态
+// const updateUserProfile = async () => {
+//   const user = AV.User.current();
+//   if (!user) return;
 
-  const query = new AV.Query('UserProfile');
-  query.equalTo('userId', user.id);
-  const profile = await query.first();
-  if (profile) {
-    profile.set('currentAnimalId', store.state.currentAnimalId);
-    profile.set('accessoryInventory', store.state.accessoryInventory);
-    await profile.save();
-  }
-};
+//   const query = new AV.Query('UserProfile');
+//   query.equalTo('userId', user.id);
+//   const profile = await query.first();
+//   if (profile) {
+//     profile.set('currentAnimalId', store.state.currentAnimalId);
+//     profile.set('accessoryInventory', store.state.accessoryInventory);
+//     await profile.save();
+//   }
+// };
 
 // ----------------------------------------
 // 登录状态检查
@@ -107,7 +107,7 @@ const checkAuthState = async (user = null) => {
     await store.loadCloudData();
 
     // 云端同步小动物和饰品状态
-    await syncUserProfile();
+      await store.loadUserProfile(); // ✅ 动物 + 饰品
   } else {
     isAuthenticated.value = false;
     userId.value = null;
@@ -147,47 +147,47 @@ const signOutUser = async () => {
 // ----------------------------------------
 // 佩戴/卸下饰品时同步云端
 // ----------------------------------------
-store.equipAccessory = async (id) => {
-  const acc = store.state.accessoryInventory[id];
-  if (!acc || !acc.unlocked) {
-    store.showFeedback(`饰品未解锁`);
-    return;
-  }
+// store.equipAccessory = async (id) => {
+//   const acc = store.state.accessoryInventory[id];
+//   if (!acc || !acc.unlocked) {
+//     store.showFeedback(`饰品未解锁`);
+//     return;
+//   }
 
-  // 如果已佩戴则卸下
-  if (acc.equipped) {
-    acc.equipped = false;
-    store.showFeedback(`已卸下 ${acc.name}`);
-  } else {
-    // 其他饰品全部卸下
-    for (const k in store.state.accessoryInventory) {
-      store.state.accessoryInventory[k].equipped = false;
-    }
-    acc.equipped = true;
-    store.showFeedback(`已佩戴 ${acc.name}`);
-  }
+//   // 如果已佩戴则卸下
+//   if (acc.equipped) {
+//     acc.equipped = false;
+//     store.showFeedback(`已卸下 ${acc.name}`);
+//   } else {
+//     // 其他饰品全部卸下
+//     for (const k in store.state.accessoryInventory) {
+//       store.state.accessoryInventory[k].equipped = false;
+//     }
+//     acc.equipped = true;
+//     store.showFeedback(`已佩戴 ${acc.name}`);
+//   }
 
-  store.saveData();
-  await updateUserProfile();
-};
+//   store.saveData();
+//   await updateUserProfile();
+// };
 
-// 切换小动物也同步云端
-store.selectAnimal = async (animalId) => {
-  if (store.state.currentAnimalId === animalId) {
-    store.showFeedback(`已是 ${store.MOODS[animalId]?.name}`);
-    return;
-  }
-  store.state.currentAnimalId = animalId;
+// // 切换小动物也同步云端
+// store.selectAnimal = async (animalId) => {
+//   if (store.state.currentAnimalId === animalId) {
+//     store.showFeedback(`已是 ${store.MOODS[animalId]?.name}`);
+//     return;
+//   }
+//   store.state.currentAnimalId = animalId;
 
-  // 卸下所有饰品
-  for (const k in store.state.accessoryInventory) {
-    store.state.accessoryInventory[k].equipped = false;
-  }
+//   // 卸下所有饰品
+//   for (const k in store.state.accessoryInventory) {
+//     store.state.accessoryInventory[k].equipped = false;
+//   }
 
-  store.saveData();
-  await updateUserProfile();
-  store.showFeedback(`切换为 ${store.ANIMALS[animalId].name}`);
-};
+//   store.saveData();
+//   await updateUserProfile();
+//   store.showFeedback(`切换为 ${store.ANIMALS[animalId].name}`);
+// };
 
 // ----------------------------------------
 // LeanCloud 初始化

@@ -15,7 +15,7 @@ const getCurrentDate = () => {
 };
 
 // ------------------------------------
-// 状态
+// 状态//核心数据
 // ------------------------------------
 const state = reactive({
   currentAnimalId: 'RABBIT',
@@ -90,6 +90,8 @@ function resetForNewUser() {
 
 // ------------------------------------
 // 云端 UserProfile
+//读云端 → 写入 state
+//是饰品和动物
 // ------------------------------------
 const loadUserProfile = async () => {
   const user = AV.User.current();
@@ -112,7 +114,8 @@ const loadUserProfile = async () => {
     await saveUserProfile(); // 没有 profile，新建
   }
 };
-
+//读 state → 写入云端
+//饰品和动物
 const saveUserProfile = async () => {
   const user = AV.User.current();
   if (!user) return;
@@ -128,7 +131,7 @@ const saveUserProfile = async () => {
   }
 
   profile.set("currentAnimalId", state.currentAnimalId);
-  profile.set("accessoryInventory", state.accessoryInventory);
+  profile.set("accessoryInventory", state.accessoryInventory);//新建成后存里
   await profile.save();
 };
 
@@ -144,8 +147,8 @@ const registerByEmail = async (email, password) => {
   const result = await user.signUp();
   state.user = result;
 
-  resetForNewUser();
-  await saveUserProfile();
+  resetForNewUser();//初始化
+  await saveUserProfile();//新建profile（动物，和饰品）
   return result;
 };
 
@@ -153,8 +156,8 @@ const loginByEmail = async (email, password) => {
   const user = await AV.User.logIn(email, password);
   state.user = user;
 
-  await loadCloudData();
-  await loadUserProfile();
+  await loadCloudData();//云端加载历史心情
+  await loadUserProfile();//云端加载动物和饰品
 
   // 设置今天心情
   const today = getCurrentDate();
@@ -327,6 +330,9 @@ export function useStore() {
 
     loadLocalData,
     saveData,
+
+    loadUserProfile,   //  加上
+    saveUserProfile,   // 加上
 
     registerByEmail,
     loginByEmail,
