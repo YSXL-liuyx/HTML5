@@ -4,7 +4,7 @@ import AV from "leancloud-storage";
 import { MOODS, ANIMALS, INITIAL_INVENTORY, ANIMAL_DIALOGUES } from '../data/constants';
 
 // ------------------------------------
-// 工具函数
+// 工具函数。
 // ------------------------------------
 const getCurrentDate = () => {
   const date = new Date();

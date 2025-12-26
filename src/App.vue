@@ -5,7 +5,7 @@ import { useStore } from './store/store';
 const store = useStore();
 
 // ----------------------------------------
-// 页面组件
+// 页面组件。
 // ----------------------------------------
 import HomeView from './components/HomeView.vue';
 import LogView from './components/LogView.vue';
